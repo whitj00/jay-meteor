@@ -5,11 +5,73 @@
 <link href="css/bootstrap.css" rel="stylesheet" type="text/css"/>
 <script src="client/jquery.js" type="text/javascript"></script>
 <script src="client/bootstrap.js" type="text/javascript"></script>
-<script src="client/converters.js" type="text/javascript"></script>
-<script src="client/curve25519.js" type="text/javascript"></script>
-<script src="client/nxtaddress.js" type="text/javascript"></script>
-<script src="client/aes.js" type="text/javascript"></script>
 <script src="client/jay.js" type="text/javascript"></script>
+<script>
+var DEFAULT_NODE = "jnxt.org";
+var noAccountsMessage = "No Accounts Added";
+function clearAccountOptions()
+{
+	$("#transact_account").html("");
+	$("#token_account").html("");
+	$("#message_account").html("");
+	$("#accounts_account").html("");
+}
+
+
+function loadAccounts()
+{
+        clearAccountOptions();
+        var accounts = JSON.parse(localStorage["accounts"]);
+        if(accounts && accounts.length > 0)
+        {
+                for(var a=0;a<accounts.length;a++)
+                {
+                        addAccountOption(accounts[a]["accountRS"]);
+                }
+        }
+        else
+        {
+                addAccountOption(noAccountsMessage);
+        }
+}
+
+function addAccountOption(option)
+{
+        if($("#transact_account").html().indexOf(noAccountsMessage) > -1)
+        {
+                clearAccountOptions();
+        }
+        $("#transact_account").append("<option>"+option+"</option>");
+        $("#token_account").append("<option>"+option+"</option>");
+        $("#message_account").append("<option>"+option+"</option>");
+        $("#accounts_account").append("<option>"+option+"</option>");
+}
+
+function popoutOpen()
+{
+        if(!localStorage.hasOwnProperty("node"))
+        {
+                localStorage["node"] = DEFAULT_NODE;
+                localStorage["isTestnet"] = false;
+        }
+        if (!localStorage.hasOwnProperty("isAlwaysSend")) {
+            localStorage["isAlwaysSend"] = true;
+        }
+        // ok lets deal with any popup setup thats needed.
+        if(!localStorage["accounts"] || JSON.parse(localStorage["accounts"]).length == 0)
+        {
+                // no accounts, take us to the accounts tab first..
+                $("#popout_tabs a[href='#accounts']").tab("show");
+                addAccountOption(noAccountsMessage);
+        }
+        else
+        {
+                loadAccounts();
+        }
+
+}
+
+</script>
 <script>
 function getUrlParameter(sParam)
 {
