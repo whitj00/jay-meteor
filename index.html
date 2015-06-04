@@ -1,0 +1,604 @@
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=9" />
+<title>Jay Client</title>
+<link href="css/bootstrap.css" rel="stylesheet" type="text/css"/>
+<script src="client/jquery.js" type="text/javascript"></script>
+<script src="client/bootstrap.js" type="text/javascript"></script>
+<script src="client/jsbn.js" type="text/javascript"></script>
+<script src="client/converters.js" type="text/javascript"></script>
+<script src="client/curve25519.js" type="text/javascript"></script>
+<script src="client/jssha256.js" type="text/javascript"></script>
+<script src="client/nxtaddress.js" type="text/javascript"></script>
+<script src="client/aes.js" type="text/javascript"></script>
+<script src="client/jaycli.js" type="text/javascript"></script>
+<script src="client/jay.js" type="text/javascript"></script>
+<script>
+function getUrlParameter(sParam)
+{
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++) 
+    {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam) 
+        {
+            return sParameterName[1];
+        }
+    }
+}   
+
+
+$("document").ready(function() {
+$('[data-toggle="tooltip"]').tooltip()
+$('[data-toggle="popover"]').popover({trigger:"hover"});
+
+	$(".buttonc").click( function() {
+		window.open("index.html?popout=true", "_blank", "width=400, height=320")
+
+
+	});
+	$("#basepage").hide();
+	$("#popout").show();
+	popoutOpen();
+});
+
+//storeAccount(newAccount("1234"));
+</script>
+<style type="text/css">
+.popover {
+word-wrap: break-word;
+}
+
+body {
+margin: 50px 0px;
+padding: 0px;
+text-align: center;
+}
+
+.content {
+width: 100%;
+height: 400px;
+margin: 0px auto;
+text-align: left;
+padding: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Jay Wallet</h1>
+<div class="content">
+	<!-- Tab panes -->
+	<div>
+		<div role="tabpanel" class="tab-pane active" id="transact">
+			<div class="container-fluid">
+				<form id="transact_form">
+					<div class="form-group">
+						<label for="transact_account" class="control-label">Account</label>
+						<div class="row">
+							<div class="col-xs-10" style="margin-right: 0; padding-right: 3px;">
+								<select data-source="transact" id="transact_account" class="form-control account_selector">
+								</select>
+							</div>
+							<div class="col-xs-2" style="margin-left: 0; padding-left: 3px;">
+								<button id="transact_account_info" class="btn btn-default" type="button" data-toggle="modal" data-target="#modal_accounts_info" data-source="transact">Info</button>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="transact_transaction" class="control-label"  data-toggle="tooltip" data-placement="right" title="TX_ format, Unsigned Tx Bytes, Nxt Address, or Public Key">Transaction</label>
+						<input id="transact_transaction" type="text" class="form-control" onclick="select()" autofocus/>
+					</div><br/>
+					<button id="transact_continue" type="button" class="btn btn-primary btn-block">Continue</button>
+				</form>
+			</div>
+		</div>
+        <br>
+		<div role="tabpanel" class="tab-pane" id="accounts">
+			<div class="container-fluid">
+				<form id="accounts_form">
+					<div class="form-group">
+						<div class="btn-group btn-group-justified" role="group" aria-label="...">
+                            <div class="btn-group" role="group">
+    							<button id="accounts_import" type="button" class="btn btn-default" data-toggle="modal" data-source="import" data-target="#modal_import">Import Account</button>
+  							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="btn-group btn-group-justified" role="group" aria-label="...">
+  							<div class="btn-group" role="group">
+  							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="modal_enter_pin" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_enter_pin_title">Enter PIN</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="container-fluid">
+      				<div class="row">
+      					<input type="password" id="modal_enter_pin_input" class="text-center form-control input-sm"/>
+      				</div>
+	      			<div class="row">
+	      				<div class="btn-group btn-group-justified" role="group">
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_1" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="1">1</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_2" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="2">2</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_3" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="3">3</button>
+	  						</div>
+						</div>
+					</div>
+					<div class="row">
+	      				<div class="btn-group btn-group-justified" role="group">
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_4" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="4">4</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_5" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="5">5</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_6" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="6">6</button>
+	  						</div>
+						</div>
+					</div>
+					<div class="row">
+	      				<div class="btn-group btn-group-justified" role="group">
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_7" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="7">7</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_8" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="8">8</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_9" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="9">9</button>
+	  						</div>
+						</div>
+					</div>
+					<div class="row">
+	      				<div class="btn-group btn-group-justified" role="group">
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_clear" type="button" class="btn btn-default btn-xs">clear</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_0" type="button" class="btn btn-default btn-xs modal_enter_pin_number" data-number="0">0</button>
+	  						</div>
+	  						<div class="btn-group" role="group">
+	    						<button id="modal_enter_pin_back" type="button" class="btn btn-default btn-xs">back</button>
+	  						</div>
+						</div>
+					</div>
+				</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default btn-sm" id="modal_enter_pin_cancel" data-dismiss="modal">Cancel</button>
+       			<button type="button" class="btn btn-primary btn-sm" id="modal_enter_pin_accept" data-dismiss="modal">Accept</button>
+      		</div>
+    	</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_accounts_new" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_accounts_new_title">New Account</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="container-fluid">
+      				<dl style="margin-bottom:0;padding-bottom:2px;">
+      					<dt>
+      						Address
+      					</dt>
+      					<dd id="modal_accounts_new_address">
+      					</dd>
+      				</dl>
+      				<div class="form-group-sm">
+      					<label for="modal_accounts_new_recovery" class="control-label">Recovery Key</label>
+						<input id="modal_accounts_new_recovery" type="text" class="form-control input-sm" readonly/>
+						<span class="help-block" style="margin-bottom:0;padding-bottom:0;">Write down and keep in a secure location.</span>
+      				</div>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_accounts_new_cancel" data-dismiss="modal">Cancel</button>
+       			<button type="button" class="btn btn-primary" id="modal_accounts_new_add">Add</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_accounts_info" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_accounts_info_title">Account Info</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="form-group" style="margin-top:0;padding-top:0">
+      				<label for="modal_accounts_info_address" class="control-label">Address</label>
+					<input id="modal_accounts_info_address" type="text" class="form-control input-sm" readonly/>
+      			</div>
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_accounts_info_public_key" class="control-label">Public Key</label>
+					<input id="modal_accounts_info_public_key" type="text" class="form-control input-sm" readonly/>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_accounts_info_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_basic_info" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_basic_info_title">Basic Info</h4>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_basic_info_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_export" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_export_title">Export Account</h4>
+      		</div>
+      		<div class="modal-body">
+      			<dl style="margin-bottom:0;padding-bottom:2px;">
+      				<dt>
+      					Address
+      				</dt>
+      				<dd id="modal_export_address">
+      				</dd>
+      			</dl>
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_export_key" class="control-label">Recovery Key</label>
+					<input id="modal_export_key" type="text" class="form-control input-sm" readonly/>
+					<span class="help-text">Recovery key works as an Nxt secret phrase.</span>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_export_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_delete" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_delete_title">Delete Account</h4>
+      		</div>
+      		<div class="modal-body">
+      			<dl style="margin-bottom:0;padding-bottom:2px;">
+      				<dt>
+      					Address
+      				</dt>
+      				<dd id="modal_delete_address">
+      				</dd>
+      			</dl>
+      			<div class="well">
+      				<strong>Are you sure you want to delete?</strong>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_delete_dont" data-dismiss="modal">Don't Delete</button>
+        		<button type="button" class="btn btn-danger" id="modal_delete_delete">Delete</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_import" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_import_title">Import Account</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_import_key" class="control-label">Import</label>
+					<input id="modal_import_key" type="text" class="form-control input-sm"/>
+					<span class="help-text">Use Recovery Key or Nxt secret phrase.</span>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+      			<button type="button" class="btn btn-default" id="modal_import_close" data-dismiss="modal">Cancel</button>
+        		<button type="button" class="btn btn-primary" id="modal_import_add">Add</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_token" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_token_title">Create Token</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_token_box" class="control-label">Token</label>
+					<textarea id="modal_token_box" rows="4" type="text" class="form-control input-sm" readonly></textarea>
+					<span class="help-text"></span>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_token_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_backup" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_backup_title">Accounts Backup</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_backup_box" class="control-label">Backup Data</label>
+					<textarea id="modal_backup_box" rows="4" type="text" class="form-control input-sm" readonly></textarea>
+					<span class="help-text"></span>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_backup_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_quicksend" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_quicksend_title">Quick Send</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="form-group" style="margin-top:0;padding-top:0">
+      				<label for="modal_quicksend_address" class="control-label">Address</label>
+					<input id="modal_quicksend_address" type="text" class="form-control input-sm" readonly/>
+      			</div>
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_quicksend_amount" class="control-label">Amount</label>
+                    <div class="input-group">
+                        <input id="modal_quicksend_amount" type="text" class="form-control input-sm" />
+                        <div class="input-group-addon">NXT</div>
+                    </div>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_quicksend_cancel" data-dismiss="modal">Cancel</button>
+        		<button type="button" class="btn btn-primary" id="modal_quicksend_send">Send</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+
+<div class="modal fade" id="modal_quick_sure" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_quick_sure_title">Transaction Review</h4>
+      		</div>
+      		<div class="modal-body" style="padding-top:7px;margin-top:0;">
+      			<dl class="dl-horizontal" style="padding-top:0;margin-top:0;padding-bottom:0;margin-bottom:7px;">
+      				<dt>Sender</dt>
+      				<dd id="modal_quick_sure_sender"></dd>
+      				<dt>Recipient</dt>
+      				<dd id="modal_quick_sure_recipient"></dd>
+      				<dt>Amount</dt>
+      				<dd id="modal_quick_sure_amount"></dd>
+      			</dl>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_quick_sure_cancel" data-dismiss="modal">Cancel</button>
+        		<button type="button" class="btn btn-primary" id="modal_quick_sure_send">Send</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_review" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header" style="padding:6px;margin:6px;">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_review_title">Transaction Review</h4>
+      		</div>
+      		<div class="modal-body" style="padding-top:6px;margin-top:0;padding-bottom:0;margin-bottom:0;">
+                <div class="row" id="detailtx_loading" style="display:none">
+                    <div class="col-xs-12">
+                        Getting detailed transaction details ...
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <span id="tx_desc"></span>
+                        <a id="detailtx_button" href="#" style="display:none">View details</a>
+                    </div>
+                </div>
+                  <div class="row">
+                      <div class="col-xs-12">
+                          <div style="font-style: italic; color: #737373; padding-top:34px">
+                              <b>Fee:</b> <span id="tx_fee"></span> NXT<br />
+                              <b><span id="tx_sender_title"></span>:</b> <span id="tx_sender"></span>
+                          </div>
+                      </div>
+                  </div>
+      			<div class="row" style="display:none">
+	      			<div class="col-xs-6">
+	      				<dl class="dl-horizontal" style="padding-top:0;margin-top:0;padding-bottom:0;margin-bottom:2px;">
+	      				<dt id="modal_review_key_1"></dt>
+	      				<dd id="modal_review_value_1"></dd>
+	      				<dt id="modal_review_key_3"></dt>
+	      				<dd id="modal_review_value_3"></dd>
+	      				<dt id="modal_review_key_5"></dt>
+	      				<dd id="modal_review_value_5"></dd>
+	      			</dl>
+	      			</div>
+	      			<div class="col-xs-6">
+	      				<dl class="dl-horizontal" style="padding-top:0;margin-top:0;padding-bottom:0;margin-bottom:2px;">
+	      				<dt id="modal_review_key_2"></dt>
+	      				<dd id="modal_review_value_2"></dd>
+	      				<dt id="modal_review_key_4"></dt>
+	      				<dd id="modal_review_value_4"></dd>
+	      				<dt id="modal_review_key_6"></dt>
+	      				<dd id="modal_review_value_6"></dd>
+	      			</dl>
+	      			</div>
+	      		</div>
+      		</div>
+      		<div class="modal-footer" style="padding:6px;margin:6px;">
+      			<button type="button" class="btn btn-default btn-sm pull-left" data-container="body" data-toggle="popover" data-placement="top" title="TX Description" disabled id="modal_review_description">Desc
+				</button>
+      			<button type="button" class="btn btn-default btn-sm pull-left" data-container="body" data-toggle="popover" data-placement="top" title="Message Text" disabled id="modal_review_message">Msg
+				</button>
+				<button type="button" class="btn btn-default btn-sm pull-left" data-container="body" data-toggle="popover" data-placement="top" title="Public Key Announcement" disabled id="modal_review_public_key">Pub Key
+				</button>
+        		<button type="button" class="btn btn-sm btn-default" id="modal_review_cancel" data-dismiss="modal">Cancel</button>
+        		<button type="button" class="btn btn-sm btn-primary" id="modal_review_continue">Continue</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_signed" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_signed_title">Broadcast Transaction</h4>
+      		</div>
+      		<div class="modal-body">
+      			<div class="form-group" style="margin-bottom:0;padding-bottom:0;">
+      				<label for="modal_signed_box" class="control-label">Signed Transaction</label>
+					<textarea id="modal_signed_box" rows="4" type="text" class="form-control input-sm" readonly></textarea>
+					<span class="help-text"></span>
+      			</div>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" id="modal_signed_close" data-dismiss="modal">Close</button>
+        		<button type="button" class="btn btn-primary" id="modal_signed_broadcast">Broadcast</button>
+
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_tx_response" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_tx_response_title"></h4>
+      		</div>
+      		<div class="modal-body">
+	      		<dl>
+	      			<dt id="modal_tx_response_key_1"></dt>
+	      			<dd id="modal_tx_response_value_1"></dd>
+	      			<dt id="modal_tx_response_key_2"></dt>
+	      			<dd id="modal_tx_response_value_2" style="word-wrap: break-word;"></dd>
+	      		</dl>
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-sm btn-default" id="modal_tx_response_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_verify_token" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header" style="padding:11px;margin:0px">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_verify_token_title">Verify Token</h4>
+      		</div>
+      		<div class="modal-body" style="padding-bottom: 0px">
+				<div id="modal_verify_token_group" class="form-group">
+  					<label class="control-label" for="modal_verify_token_token">Token To Verify <span id="modal_verify_token_insert"></span></label>
+  					<input type="text" class="form-control input-sm" id="modal_verify_token_token" aria-describedby="modal_verify_token_token_status">
+				</div>
+	      		<dl>
+	      			<dt>Token Address</dt>
+	      			<dd id="modal_verify_token_address"></dd>
+	      			<dt>Token Generated</dt>
+	      			<dd id="modal_verify_token_timestamp"></dd>
+	      		</dl>
+      		</div>
+      		<div class="modal-footer" style="padding:7px;margin:0;">
+        		<button type="button" class="btn btn-sm btn-default" id="modal_tx_response_close" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+  	</div>
+</div>
+
+<div class="modal fade" id="modal_broadcast" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+      		<div class="modal-header">
+       			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modal_broadcast_title">Change Broadcast Node</h4>
+      		</div>
+      		<div class="modal-body">
+				<dl  style="margin-bottom:0;padding-bottom:0;">
+	      			<dt>Old Broadcast Node</dt>
+	      			<dd id="modal_broadcast_old"></dd>
+	      		</dl>
+				<div class="form-group">
+  					<label class="control-label" for="modal_broadcast_node">Broadcast Node</label>
+  					<input type="text" class="form-control input-sm" id="modal_broadcast_node"/>
+				</div>
+				<label class="checkbox-inline" for="modal_broadcast_testnet">
+  					<input type="checkbox" id="modal_broadcast_testnet" value="true"> Use Testnet
+				</label>
+                <div class="checkbox">
+                    <label>
+                        <input id="modal_broadcast_always_send" type="checkbox"> Always show detailed transaction review
+                    </label>
+                </div>
+      		</div>
+      		<div class="modal-footer">
+      			<button type="button" class="btn btn-sm btn-default" id="modal_broadcast_close" data-dismiss="modal">Close</button>
+        		<button type="button" class="btn btn-sm btn-primary" id="modal_broadcast_save">Save</button>
+			</div>
+		</div>
+  	</div>
+</div>
+</body>
