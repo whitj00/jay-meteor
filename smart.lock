@@ -1,15 +1,7 @@
 {
   "meteor": {},
   "dependencies": {
-    "basePackages": {
-      "qr-scanner": {}
-    },
-    "packages": {
-      "qr-scanner": {
-        "git": "https://github.com/hitchcott/meteor-qr-code-scanner.git",
-        "tag": "v0.2.0",
-        "commit": "ece7e012726f64e2766a99b0825f7ccc3aac654c"
-      }
-    }
+    "basePackages": {},
+    "packages": {}
   }
 }
